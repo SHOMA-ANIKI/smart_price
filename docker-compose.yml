@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: smartprice_db
+    environment:
+      POSTGRES_USER: shamil_user
+      POSTGRES_PASSWORD: secret_password
+      POSTGRES_DB: smartprice_app
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: smartprice_redis
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: smartprice_rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  app:
+    build: .
+    container_name: smartprice_api
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+  worker:
+    build: .
+    container_name: smartprice_worker
+    command: celery -A src.worker.celery_app worker --loglevel=info -P solo
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - redis
+
+  beat:
+    build: .
+    container_name: smartprice_beat
+    command: celery -A src.worker.celery_app beat --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - redis
