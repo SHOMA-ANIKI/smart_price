@@ -10,10 +10,9 @@ from src.schemas import SubscriptionCreateSchema, SubscriptionReadSchema
 from src.auth import get_current_user
 from src.worker import fetch_product_price
 from src.config import settings
+from src.repositories.products import ProductRepository
 
 router = APIRouter(prefix="/products", tags=["Products"])
-
-
 redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 @router.post("/subscribe")
@@ -22,16 +21,12 @@ async def subscribe_to_product(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-
-    product_stmt = select(Product).where(Product.url == str(sub_data.url))
-    result = await db.execute(product_stmt)
-    product = result.scalar_one_or_none()
+    product_repo = ProductRepository(db)
+    product = await product_repo.find_one_or_none(url=str(sub_data.url))
 
     if not product:
-        product = Product(url=str(sub_data.url))
-        db.add(product)
+        product = await product_repo.add({"url": str(sub_data.url)})
         await db.flush()
-
 
     new_sub = Subscription(
         user_id=current_user.id,
@@ -49,7 +44,6 @@ async def subscribe_to_product(
 
     return {"message": "Подписка оформлена", "product_id": product.id}
 
-
 @router.get("/my", response_model=list[SubscriptionReadSchema])
 async def get_my_subscriptions(
     db: AsyncSession = Depends(get_db),
@@ -62,7 +56,6 @@ async def get_my_subscriptions(
     )
     result = await db.execute(stmt)
     subscriptions = result.scalars().all()
-
 
     for sub in subscriptions:
         cached_price = redis_client.get(f"product_price:{sub.product_id}")
