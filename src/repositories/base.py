@@ -10,6 +10,11 @@ class BaseRepository(Generic[T]):
         self.model = model
         self.session = session
 
+    async def get_by_id(self, obj_id: int) -> Optional[T]:
+        stmt = select(self.model).filter_by(id=obj_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def find_one_or_none(self, **filter_by) -> Optional[T]:
         stmt = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(stmt)

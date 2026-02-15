@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     RABBITMQ_URL: str
     REDIS_URL: str
+    TELEGRAM_TOKEN: str
 
     @property
     def DATABASE_URL(self) -> str:
