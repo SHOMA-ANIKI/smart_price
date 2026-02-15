@@ -3,8 +3,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_db
+from src.models import User
 from src.schemas import UserCreateSchema, TokenSchema
-from src.auth import get_password_hash, verify_password, create_access_token
+from src.auth import get_password_hash, verify_password, create_access_token, get_current_user
 from src.utils.limiter import limiter  # Обновленный путь
 from src.repositories.users import UserRepository
 
@@ -43,3 +44,15 @@ async def login(request: Request, user_data: OAuth2PasswordRequestForm = Depends
 
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.patch("/me/telegram")
+async def set_telegram_id(
+    tg_chat_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    repo = UserRepository(db)
+    await repo.update_user(current_user.id, tg_chat_id=tg_chat_id)
+    await db.commit()
+    return {"message": "Telegram ID linked"}
+
