@@ -14,3 +14,8 @@ class ProductRepository(BaseRepository[Product]):
         stmt = select(Product)
         result = await self.session.execute(stmt)
         return result.scalars().all()
+
+    async def get_top_drops(self, limit: int = 10):
+        stmt = select(Product).where(Product.price.is_not(None)).order_by(Product.price.asc()).limit(limit)
+        res = await self.session.execute(stmt)
+        return res.scalars().all()
