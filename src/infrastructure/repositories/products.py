@@ -1,5 +1,5 @@
 from sqlalchemy import update, select
-from src.models import Product
+from src.core.models import Product
 from src.repositories.base import BaseRepository
 
 class ProductRepository(BaseRepository[Product]):

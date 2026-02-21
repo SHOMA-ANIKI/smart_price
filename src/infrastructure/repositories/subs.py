@@ -1,5 +1,5 @@
 from sqlalchemy import select, update, delete
-from src.models import Subscription
+from src.core.models import Subscription
 from src.repositories.base import BaseRepository
 
 class SubscriptionRepository(BaseRepository[Subscription]):

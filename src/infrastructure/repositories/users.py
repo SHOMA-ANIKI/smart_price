@@ -1,6 +1,6 @@
 from sqlalchemy import update
 
-from src.models import User
+from src.core.models import User
 from src.repositories.base import BaseRepository
 
 class UserRepository(BaseRepository[User]):
