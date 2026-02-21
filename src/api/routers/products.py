@@ -1,8 +1,5 @@
 from fastapi import APIRouter, Depends, status
-from src.use_cases.product_service import ProductService
-
-from src.api.dependencies import get_current_user_id
-from src.core.schemas import SubscriptionCreateSchema
+from src.use_case import ProductService
 from src.api.dependencies import get_current_user_id, get_product_service
 from src.core.schemas import SubscriptionCreateSchema
 router = APIRouter(prefix="/products", tags=["Products"])

@@ -1,20 +1,32 @@
 from fastapi import FastAPI
-from slowapi.errors import RateLimitExceeded
-from slowapi import _rate_limit_exceeded_handler
+from src.core.config import settings
 
-from src.utils.limiter import limiter
-from src.routers.auth import router as auth_router
-from src.routers.products import router as products_router
+from src.api.routers.auth import router as auth_router
+from src.api.routers.products import router as products_router
 
-app = FastAPI(title="SmartPrice API")
+app = FastAPI(
+    title="SmartPrice API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
 
-app.state.limiter = limiter # noqa
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.include_router(
+    auth_router,
+    prefix=f"{settings.API_V1_STR}/auth",
+    tags=["Authentication"]
+)
 
+app.include_router(
+    products_router,
+    prefix=f"{settings.API_V1_STR}/products",
+    tags=["Products & Subscriptions"]
+)
 
-app.include_router(auth_router)
-app.include_router(products_router)
-
-@app.get("/")
+@app.get("/", tags=["Health Check"])
 async def root():
-    return {"message": "SmartPrice API is running"}
+    return {
+        "status": "online",
+        "version": "1.0.0",
+        "api_prefix": settings.API_V1_STR
+    }

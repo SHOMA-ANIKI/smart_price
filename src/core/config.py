@@ -1,29 +1,39 @@
 import os
+from pathlib import Path
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 
 class Settings(BaseSettings):
+    # Database
     DB_USER: str
     DB_PASS: str
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
+
     SECRET_KEY: str
-    ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
     RABBITMQ_URL: str
     REDIS_URL: str
     TELEGRAM_TOKEN: str
 
+    API_V1_STR: str = "/api/v1"
+
+    @computed_field
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     model_config = SettingsConfigDict(
-        env_file=os.path.join(BASE_DIR, ".env"),
+        env_file=BASE_DIR / ".env",
         env_file_encoding='utf-8',
         extra='ignore'
     )
+
 
 settings = Settings()

@@ -10,8 +10,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from src.config import settings
-from src.models import Base
+from src.core.config import settings
+from src.core.models import Base
 # --------------------------
 
 config = context.config
